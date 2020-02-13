@@ -1,4 +1,5 @@
 # NYTViewer
+
 Test coding app for a simple NY Times article viewer
 
 This is a simple application for pulling down article lists from the NY Times API and displaying them.
@@ -23,10 +24,11 @@ All controller dependencies must be declared as protocols and provided in the `i
 
 - There is a mismatch between the objects use and the API requirements.  This can lead to invalid API calls, which will return an error.  
 - There is no Article Viewer (yet)
-- This included experimental support for Combine, experimental because while I'm accustomed to Reactive, I've not used Combine specifically.
 
-## TODOs:
+## TODOs
 
 - Add Unit Tests
 - Create Article Viewer.
 - UI Needs polishing
+- Fix api sections for Top stories.
+- Finish documenting code
