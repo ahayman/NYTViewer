@@ -23,12 +23,11 @@ All controller dependencies must be declared as protocols and provided in the `i
 ## Known Issues
 
 - There is a mismatch between the objects use and the API requirements.  This can lead to invalid API calls, which will return an error.  
-- There is no Article Viewer (yet)
 
 ## TODOs
 
 - Add Unit Tests
-- Create Article Viewer.
 - UI Needs polishing
 - Fix api sections for Top stories.
 - Finish documenting code
+- UI Needs to handle/display Errors and Empty return results

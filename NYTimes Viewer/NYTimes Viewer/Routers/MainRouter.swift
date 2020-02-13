@@ -45,14 +45,25 @@ class MainRouter {
     return vc
   }
   
+  private func newArticleView(for article: Article) -> UIViewController? {
+    guard let url = URL(string: article.url) else {
+      UIAlertController
+        .alert("Invalid", message: "The article URL was invalid and cannot be loaded.")
+        .ok()
+        .presentOn(nav)
+      return nil
+    }
+    let vc = ArticleViewerVC(url: url)
+    vc.title = article.title
+    return vc
+  }
+  
 }
 
 extension MainRouter : ArticleListRouter {
   func routeTo(article: Article) {
-    UIAlertController
-      .alert("Not Implemented", message: "Cannot show article: \(article.title)")
-      .ok()
-      .presentOn(nav)
+    guard let vc = newArticleView(for: article) else { return }
+    nav.pushViewController(vc, animated: true)
   }
   
   
