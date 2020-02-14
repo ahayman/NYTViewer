@@ -314,11 +314,11 @@
 		65D118AC23F202D800D0353C /* Article List */ = {
 			isa = PBXGroup;
 			children = (
-				6541B81B23F319B200711EB5 /* ArticleListController.swift */,
-				65D118AE23F203C100D0353C /* ArticleCell.swift */,
-				6541B81723F3038E00711EB5 /* ArticleCollection.swift */,
 				6541B81923F3134100711EB5 /* ArticleListVC.swift */,
+				6541B81B23F319B200711EB5 /* ArticleListController.swift */,
 				6541B81D23F31BEA00711EB5 /* ArticleListContent.swift */,
+				6541B81723F3038E00711EB5 /* ArticleCollection.swift */,
+				65D118AE23F203C100D0353C /* ArticleCell.swift */,
 			);
 			path = "Article List";
 			sourceTree = "<group>";

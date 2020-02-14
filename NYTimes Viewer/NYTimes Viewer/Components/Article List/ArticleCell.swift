@@ -18,6 +18,7 @@ import Combine
  */
 protocol ArticleCellData {
   func image() -> AnyPublisher<UIImage, ImageSourceError>
+  var validImage: Bool { get }
   var title: String { get }
   var byline: String { get }
   var content: String { get }
@@ -42,6 +43,7 @@ class ArticleCell : UICollectionViewCell {
   private let thumbnail = Styles.CellImage.new()
   private let content = Styles.CellContent.new()
   private let hr = Styles.HR.new()
+  private var data: Data?
 
   // MARK: Init & Public
   
@@ -59,15 +61,17 @@ class ArticleCell : UICollectionViewCell {
    every cell at once, and then cancel them all just as quickly).
    */
   func configure(with data: Data, loadImage: Bool = true) {
+    self.data = data
     header.text = data.title
     byline.text = data.byline
     content.text = data.content
+    thumbnail.image = nil
 
     if loadImage {
       imageCanceller = data.image()
         .receive(on: RunLoop.main)
         .sink{ [weak self] (result: Result<UIImage, ImageSourceError>) in
-          self?.thumbnail.image = try? result.get()
+          self?.thumbnail.image = result.value
         }
     }
 
@@ -84,8 +88,8 @@ class ArticleCell : UICollectionViewCell {
   override func sizeThatFits(_ size: CGSize) -> CGSize {
     layoutIn(frame: CGRect(origin: .zero, size: size))
 
-    let maxY = [header, byline, content, thumbnail, hr].reduce(CGFloat(0)) { max($0, $1.maxY) }
-    return CGSize(width: size.width, height: maxY + 5.0)
+    let maxY = [header, byline, content, thumbnail, hr].map{ $0.maxY }.max() ?? 0
+    return CGSize(width: size.width, height: maxY + 10.0)
   }
   
   // MARK: Private
@@ -96,7 +100,12 @@ class ArticleCell : UICollectionViewCell {
    */
   private func layoutIn(frame: CGRect) {
     var rect = frame
-    thumbnail.frame = rect.slice(.top(70))
+    
+    if data?.validImage == true {
+      thumbnail.frame = rect.slice(.top(70))
+    } else {
+      thumbnail.frame = .zero
+    }
     
     rect = rect.inset(left: 5.0)
     
@@ -107,6 +116,7 @@ class ArticleCell : UICollectionViewCell {
     header.frame = rect.slice(.top(header.height + 2.0))
     byline.frame = rect.slice(.top(byline.height + 4.0))
     content.frame = rect.slice(.top(content.height + 6.0))
-    hr.frame = rect.slice(.top(2.0))
+    hr.frame = rect.slice(.top(1.0))
   }
+  
 }

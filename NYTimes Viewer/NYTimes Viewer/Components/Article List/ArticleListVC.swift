@@ -32,15 +32,23 @@ private struct ArticleData: ArticleCellData  {
   let article: Article
   let datasource: ImageDatasource
   
+  /// Retrieve an imageURL if one exists in the media
+  private var imageURL: URL? {
+    guard let imageUrl = article.media?.first(where: { $0.type == "image" }) else { return nil }
+    return URL(string: imageUrl.url)
+  }
+  
+  /// whether a valid Image is available
+  var validImage: Bool {
+    return imageURL == nil ? false : true
+  }
+  
   /**
    Retrieve an image from the image datasource, or return error is the URL isn't valid.
    */
   func image() -> AnyPublisher<UIImage, ImageSourceError> {
-    guard let imageUrl = article.media?.first(where: { $0.type == "image" }) else {
+    guard let url = imageURL else {
       return Future(error: ImageSourceError.NoImageAvailable).eraseToAnyPublisher()
-    }
-    guard let url = URL(string: imageUrl.url) else {
-      return Future(error: ImageSourceError.InvalidImageURL).eraseToAnyPublisher()
     }
     return datasource
       .getImage(for: url)
@@ -117,8 +125,8 @@ class ArticleListVC : UIViewController {
   private lazy var latestSectionPicker: SegmentPicker<LatestSection?> = SegmentPicker(segments: [nil], selected: nil)
   private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all)
   private lazy var articles = ArticleCollection<ArticleData>(data: [])
+  private lazy var hr = Styles.HR.new().setShadow()
 
-  
   // MARK: Init
   
   init(router: Router, datasource: Datasource, imageSource: ImageDatasource) {
@@ -134,7 +142,7 @@ class ArticleListVC : UIViewController {
   
   override func loadView() {
     view = Styles.Background.new()
-    view.addSubviews(contentPicker, topSectionPicker, latestSectionPicker, sharePicker, articles)
+    view.addSubviews(contentPicker, topSectionPicker, latestSectionPicker, sharePicker, articles, hr)
     
     topSectionPicker.layout = .horizonal(.start)
     latestSectionPicker.layout = .horizonal(.start)
@@ -157,10 +165,11 @@ class ArticleListVC : UIViewController {
     
     var rect = view.safeBounds
     
-    contentPicker.frame = rect.slice(.top(40))
+    contentPicker.frame = rect.slice(.top(40)).inset(left: 5.0, right: 5.0)
     if datasource.content != .mostViewed {
-      [topSectionPicker, sharePicker, latestSectionPicker].set(frame: rect.slice(.top(40)))
+      [topSectionPicker, sharePicker, latestSectionPicker].set(frame: rect.slice(.top(40)).inset(left: 5.0, right: 5.0))
     }
+    hr.frame = rect.slice(.top(1))
     articles.frame = rect
   }
   

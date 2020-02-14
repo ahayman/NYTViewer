@@ -128,6 +128,15 @@ extension UIView {
     return self
   }
   
+  @discardableResult func setShadow(color: UIColor? = .black, opacity: CGFloat = 0.8, radius: CGFloat = 2.0, offset: CGSize = CGSize(width: 0, height: 2)) -> Self {
+    layer.masksToBounds = false
+    layer.shadowColor = color?.cgColor
+    layer.shadowOpacity = Float(opacity)
+    layer.shadowRadius = radius
+    layer.shadowOffset = offset
+    return self
+  }
+  
   @discardableResult func set(alpha: CGFloat) -> Self {
     self.alpha = alpha
     return self

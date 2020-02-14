@@ -22,6 +22,5 @@ protocol ImageDatasource {
  */
 enum ImageSourceError : LocalizedError {
   case NoImageAvailable
-  case InvalidImageURL
   case APIError(APIError)
 }
