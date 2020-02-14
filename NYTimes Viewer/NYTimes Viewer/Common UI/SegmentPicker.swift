@@ -32,7 +32,7 @@ class SegmentPicker<T: SegmentItem> : BaseView {
   
   private typealias Segment = (item: T, view: LabelledButton)
   
-  private var segments: [Segment]
+  private var segments: [Segment] = []
   @Published private var selected: T
   private let scroll: UIScrollView = UIScrollView(frame: .zero)
   
@@ -55,32 +55,40 @@ class SegmentPicker<T: SegmentItem> : BaseView {
    Initialize with an array of Segments and indicate the selected item.
    */
   init(segments: [T], selected: T) {
-    
-    let segmentViews: [Segment] = segments.map {
-      let button = $0 == selected ? Styles.SegmentSelected.new() : Styles.SegmentUnselected.new()
-      button.text = $0.displayName
-      return ($0, button)
-    }
-    
-    self.segments = segmentViews
     self.selected = selected
     
     super.init(frame: .zero)
     
-    for segment in self.segments {
-      let item = segment.item
-      segment.view.onPress = { [weak self] in
-        self?.onPress(item: item)
-      }
-    }
-    
     addSubview(scroll)
-    scroll.addSubviews(self.segments.map{ $0.view })
-    updateStyle()
+    load(segments: segments, selected: selected)
   }
   
   /// I despise this requirement
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+  
+  
+  /**
+   Loads a new set of segments along with a selection
+   All prior segments will be replaced with new ones
+   */
+  func load(segments: [T], selected: T) {
+    self.selected = selected
+    
+    self.segments.map{ $0.view }.removeFromSuperview()
+    
+    self.segments = segments.map { item in
+      let button = item == selected ? Styles.SegmentSelected.new() : Styles.SegmentUnselected.new()
+      button.text = item.displayName
+      button.onPress = { [weak self] in
+        self?.onPress(item: item)
+      }
+      return (item, button)
+    }
+    scroll.addSubviews(self.segments.map{ $0.view })
+    
+    updateStyle()
+    setNeedsLayout()
+  }
   
   /**
    Scroll to the selected item to bring it into view.
@@ -104,8 +112,9 @@ class SegmentPicker<T: SegmentItem> : BaseView {
     if scroll { scrollToSelected() }
   }
   
+
+  /// Apply appropriate selection styles
   private func updateStyle() {
-    // Apply appropriate selection styles
     for (item, view) in segments {
       if item == selected {
         Styles.SegmentSelected.apply(to: view)

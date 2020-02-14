@@ -16,7 +16,7 @@ let cacheDebounce: TimeInterval = 30
  Concrete implementation of ArticleListDatasource
  */
 class ArticleListController : ArticleListDatasource {
-  
+
   // A simple caching structure to keep track of the date the articles were last updated
   private struct CachedArticles {
     let date: Date
@@ -50,9 +50,14 @@ class ArticleListController : ArticleListDatasource {
   
   // The current article list
   var articles: Published<[Article]>.Publisher { return $_articles }
+  @Published private var _articles: [Article]
+  
+  var latestSections: Published<[LatestSection?]>.Publisher { return $_sections }
+  @Published private var _sections: [LatestSection?]
+  private var sectionLoading: Cancellable?
+  
   
   private var api: APIClient
-  @Published private var _articles: [Article]
   @Published private var _loading: Bool
   
   /**
@@ -76,6 +81,7 @@ class ArticleListController : ArticleListDatasource {
     self.api = apiClient
     self._loading = false
     self._articles = []
+    self._sections = [nil]
   }
   
   /**
@@ -85,11 +91,23 @@ class ArticleListController : ArticleListDatasource {
    */
   func reloadContent() {
     load(content: content)
+    loadSections()
   }
 
   /// Updates the loading parameter
   private func updateLoading() {
     _loading = networkRequests[content] != nil
+  }
+  
+  private func loadSections() {
+    guard sectionLoading == nil else { return }
+    sectionLoading = api
+      .get(request: SectionRequest())
+      .sink{ [weak self] (response: Result<SectionResponse, APIError>) in
+        guard let this = self else { return }
+        this.sectionLoading = nil
+        this._sections = response.value?.results ?? [nil]
+      }
   }
   
   /**
@@ -107,14 +125,14 @@ class ArticleListController : ArticleListDatasource {
     }
     
     networkRequests[content] = api
-      .getArticles(request: request)
-      .sink { [weak self] (result: Result<[Article], APIError>) in
+      .get(request: request)
+      .sink { [weak self] (result: Result<ArticleResponse, APIError>) in
         guard let this = self else { return }
         this.networkRequests[content] = nil
-        if case .success(let articles) = result {
-          this.cache[content] = CachedArticles(date: Date(), data: articles)
+        if case .success(let response) = result {
+          this.cache[content] = CachedArticles(date: Date(), data: response.results)
           if this.content == content {
-            this._articles = articles
+            this._articles = response.results
           }
         }
         this.updateLoading()

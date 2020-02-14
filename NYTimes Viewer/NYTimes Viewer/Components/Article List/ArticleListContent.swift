@@ -75,12 +75,11 @@ enum ArticleShareType : String, CaseIterable {
 
 /**
  The top-most article content available to the user.
- TODO: The 'latest' should be using something other than ArticleSection. There's a separate API to retrieve sections available for latest.  I need to look into it.
  */
 enum ArticleContent : Hashable {
-  static var displayNames: [String] = [ArticleContent.latest(section: .home), ArticleContent.top(section: .home), .mostViewed, .mostShared(type: .all)].map{ $0.displayName }
+  static var displayNames: [String] = [ArticleContent.latest(section: LatestSection(section: "", display_name: "")), ArticleContent.top(section: .home), .mostViewed, .mostShared(type: .all)].map{ $0.displayName }
 
-  case latest(section: ArticleSection)
+  case latest(section: LatestSection?)
   case top(section: ArticleSection)
   case mostViewed
   case mostShared(type: ArticleShareType)

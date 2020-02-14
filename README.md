@@ -20,14 +20,9 @@ No ViewController should ever be aware of any other.  Instead, "routing" needs s
 
 All controller dependencies must be declared as protocols and provided in the `init` (direct dependency injection).  This allows for mocks to be easily injected for testing purposes.
 
-## Known Issues
-
-- There is a mismatch between the objects use and the API requirements.  This can lead to invalid API calls, which will return an error.  
-
 ## TODOs
 
 - Add Unit Tests
 - UI Needs polishing
-- Fix api sections for Top stories.
 - Finish documenting code
 - UI Needs to handle/display Errors and Empty return results

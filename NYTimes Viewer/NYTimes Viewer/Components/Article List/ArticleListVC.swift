@@ -11,7 +11,12 @@ import Combine
 
 extension ArticleContent : SegmentItem {
   static func AllCases() -> [ArticleContent] {
-    return [.top(section: .home), .latest(section: .home), .mostViewed, .mostShared(type: .all)]
+    return [
+      .top(section: .home),
+      .latest(section: nil),
+      .mostViewed,
+      .mostShared(type: .all)
+    ]
   }
 }
 extension ArticleSection : SegmentItem { }
@@ -57,9 +62,15 @@ protocol ArticleListDatasource {
 
   /// Subscribe to loading to be notified when articles are loading
   var loading: Published<Bool>.Publisher { get }
-  
+
   /// Subscribe to the articles to get the latest
   var articles: Published<[Article]>.Publisher { get }
+  
+  /**
+   Sections for the "Latest" must be first downloaded.
+   Subscribe to this when they're updated.
+   */
+  var latestSections: Published<[LatestSection?]>.Publisher { get }
   
   /// Needed to manually reload data when user pulls-to-refresh.  Also used on first-load.
   func reloadContent()
@@ -68,6 +79,18 @@ protocol ArticleListDatasource {
 /// Routes that can triggered from this VC
 protocol ArticleListRouter : class {
   func routeTo(article: Article)
+}
+
+extension Optional: SegmentItem where Wrapped == LatestSection {
+  
+  var displayName: String {
+    switch self {
+    case .none: return "All"
+    case .some(let item): return item.display_name
+    }
+  }
+  
+  
 }
 
 /**
@@ -89,9 +112,9 @@ class ArticleListVC : UIViewController {
   
   // MARK: View Construction
   
-  private lazy var contentPicker = SegmentPicker(segments: ArticleContent.AllCases(), selected: .top(section: .home))
+  private lazy var contentPicker = SegmentPicker(segments: ArticleContent.AllCases(), selected: datasource.content)
   private lazy var topSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .home)
-  private lazy var latestSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .world)
+  private lazy var latestSectionPicker: SegmentPicker<LatestSection?> = SegmentPicker(segments: [nil], selected: nil)
   private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all)
   private lazy var articles = ArticleCollection<ArticleData>(data: [])
 
@@ -118,6 +141,7 @@ class ArticleListVC : UIViewController {
 
     setupContentStreams()
     setupPickers()
+    updatePickers()
 
     articles.onSelect = { [weak self] (_, article) in
       self?.router?.routeTo(article: article.article)
@@ -188,6 +212,15 @@ class ArticleListVC : UIViewController {
       .sink { [weak self] (loading: Bool) in
         self?.articles.setLoading(loading)
       }
+    
+    cancellables += datasource.latestSections
+      .receive(on: RunLoop.main)
+      .removeDuplicates()
+      .sink{ [weak self] (sections: [LatestSection?]) in
+        guard let this = self else { return }
+        let selected = sections.first{ $0 == this.latestSectionPicker.selectedItem } ?? nil
+        this.latestSectionPicker.load(segments: sections, selected: selected)
+      }
   }
   
   
@@ -221,8 +254,11 @@ class ArticleListVC : UIViewController {
       .receive(on: RunLoop.main)
       .dropFirst()
       .removeDuplicates()
-      .sink { [weak self] (section: ArticleSection) in
-        self?.datasource.content = .latest(section: section)
+      .sink { [weak self] (section: LatestSection?) in
+        guard let this = self else { return }
+        if case .latest = this.datasource.content {
+          this.datasource.content = .latest(section: section)
+        }
       }
     
     cancellables += topSectionPicker.selectedSegment
@@ -230,7 +266,10 @@ class ArticleListVC : UIViewController {
       .dropFirst()
       .removeDuplicates()
       .sink { [weak self] (section: ArticleSection) in
-        self?.datasource.content = .top(section: section)
+        guard let this = self else { return }
+        if case .top = this.datasource.content {
+          this.datasource.content = .top(section: section)
+        }
       }
     
     cancellables += sharePicker.selectedSegment
@@ -238,7 +277,10 @@ class ArticleListVC : UIViewController {
       .dropFirst()
       .removeDuplicates()
       .sink { [weak self] (share: ArticleShareType) in
-        self?.datasource.content = .mostShared(type: share)
+        guard let this = self else { return }
+        if case .mostShared = this.datasource.content {
+          this.datasource.content = .mostShared(type: share)
+        }
       }
   }
 
