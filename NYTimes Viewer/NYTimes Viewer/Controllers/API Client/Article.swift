@@ -67,7 +67,7 @@ struct StandardArticle : Decodable, Article {
     abstract = try? container.decode(String.self, forKey: .abstract)
     url = try container.decode(String.self, forKey: .url)
     item_type = try container.decode(String.self, forKey: .item_type)
-    multimedia = try? container.decode([StandardMedia].self, forKey: .multimedia)
+    multimedia = (try? container.decode([Failable<StandardMedia>].self, forKey: .multimedia))?.compactMap{ $0.value }
   }
 }
 
@@ -113,7 +113,7 @@ struct SharedArticle : Decodable, Article {
     byline = try? container.decode(String.self, forKey: .byline)
     abstract = try? container.decode(String.self, forKey: .abstract)
     url = try container.decode(String.self, forKey: .url)
-    multimedia = try? container.decode([SharedMedia].self, forKey: .multimedia)
+    multimedia = (try? container.decode([Failable<SharedMedia>].self, forKey: .multimedia))?.compactMap{ $0.value }
   }
 }
 
@@ -138,6 +138,13 @@ struct SharedMedia : Decodable, Media {
     case caption
     case type
     case mediaMetadata = "media-metadata"
+  }
+  
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    caption = try? container.decode(String.self, forKey: .caption)
+    type = try container.decode(String.self, forKey: .type)
+    mediaMetadata = (try? container.decode([Failable<SharedMetadata>].self, forKey: .mediaMetadata))?.compactMap{ $0.value }
   }
   
 }

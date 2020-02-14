@@ -86,10 +86,11 @@ struct ArticleResponse : Decodable {
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.status = try container.decode(String.self, forKey: .status)
-    if let standardArticles: [StandardArticle] = try? container.decode([StandardArticle].self, forKey: .results) {
-      results = standardArticles
+    let standardArticles = (try? container.decode([Failable<StandardArticle>].self, forKey: .results))?.compactMap{ $0.value }
+    if let articles = standardArticles, articles.count > 0 {
+      results = articles
     } else {
-      results = try container.decode([SharedArticle].self, forKey: .results)
+      results = (try container.decode([Failable<SharedArticle>].self, forKey: .results)).compactMap{ $0.value }
     }
   }
   

@@ -27,8 +27,7 @@ protocol APIClient {
  replaced with a mock for unit tests.
  */
 protocol NetworkSession {
-  func dataTaskPublisher(for request: URLRequest) -> URLSession.DataTaskPublisher
-  func dataTaskPublisher(for url: URL) -> URLSession.DataTaskPublisher
+  func task(for request: URLRequest) -> AnyPublisher<(Data, HTTPURLResponse), URLError>
 }
 
 /**
@@ -43,7 +42,24 @@ enum APIError : LocalizedError {
 
 
 /// Conforming URLSession to NetworkSession for normal usage.
-extension URLSession : NetworkSession {}
+extension URLSession : NetworkSession {
+  
+  func task(for request: URLRequest) -> AnyPublisher<(Data, HTTPURLResponse), URLError> {
+    return self
+      .dataTaskPublisher(for: request.url!)
+      .tryMap{ (data: Data, response: URLResponse) in
+        guard let httpRes = response as? HTTPURLResponse else { throw URLError(URLError.Code.badServerResponse) }
+        return (data, httpRes)
+      }
+      .mapError{ return ($0 as? URLError) ?? URLError(URLError.Code.badServerResponse) }
+      .eraseToAnyPublisher()
+  }
+  
+  func task(for url: URL) -> AnyPublisher<(Data, HTTPURLResponse), URLError> {
+    return task(for: URLRequest(url: url))
+  }
+  
+}
 
 /**
  Concrete API Client that handles requests to get articles and images from the NY Times API.
@@ -63,12 +79,10 @@ class NYTClient : APIClient {
   func get<T:APIRequest>(request: T) -> AnyPublisher<T.Response, APIError> {
     guard let req = request.request else { return Future(error: APIError.invalidURL).eraseToAnyPublisher() }
     return session
-      .dataTaskPublisher(for: req)
+      .task(for: req)
       .tryMap { data, response in
-        if let httpResponse = response as? HTTPURLResponse {
-          guard (200..<300).contains(httpResponse.statusCode) else {
-            throw APIError.invalidCode(httpResponse.statusCode, String(data: data, encoding: .utf8) ?? "no data")
-          }
+        guard (200..<300).contains(response.statusCode) else {
+          throw APIError.invalidCode(response.statusCode, String(data: data, encoding: .utf8) ?? "no data")
         }
         guard data.count > 0 else { throw APIError.invalidResponse }
         return data
@@ -89,10 +103,8 @@ class NYTClient : APIClient {
   /// Returns an a publisher to suscribe to an image retrieved for a URL
   func getImage(for url: URL) -> AnyPublisher<UIImage, APIError> {
     return session
-      .dataTaskPublisher(for: url)
-      .compactMap{ data, _ in
-        return UIImage(data: data)
-      }
+      .task(for: URLRequest(url: url))
+      .compactMap{ data, _ in return UIImage(data: data) }
       .mapError{ _ in APIError.invalidResponse }
       .eraseToAnyPublisher()
   }

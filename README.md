@@ -22,7 +22,7 @@ All controller dependencies must be declared as protocols and provided in the `i
 
 ## TODOs
 
-- Add Unit Tests
+- Finish Unit Tests (only APIClient is tested)
 - UI Needs polishing
 - Finish documenting code
 - UI Needs to handle/display Errors and Empty return results
