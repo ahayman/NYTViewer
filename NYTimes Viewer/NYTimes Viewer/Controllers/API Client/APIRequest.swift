@@ -22,6 +22,17 @@ enum RequestType {
 
 /**
  A protocol that defines a basic API request.
+ This is the primary interface that determines the request made to the API
+ and how the returned data will be processed.
+ 
+ As such, there are two primary associatedType:
+  - Response: Decodable - Must be some Decodabel object that can handle
+ the full response of the returned data.
+  - Decoder - Must be capable of taking Data and decoding it into the Response object (ex: JSONDecoder)
+ 
+ The type, url, and parameters will be used to construct the URLRequest
+ The decodable and decoder are used to date the received data and transform it
+ into the requested object.
  */
 protocol APIRequest {
   associatedtype Response: Decodable

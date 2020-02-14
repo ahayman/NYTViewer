@@ -16,19 +16,18 @@ struct LatestSection : Decodable, Hashable {
   let display_name: String
 }
 
+/**
+ A simple API Request object that request a section list from the server.
+ It uses a JSONDecoder to convert the server data into SectionResponse type.
+ */
 struct SectionRequest : APIRequest {
   typealias Response = SectionResponse
   typealias Decoder = JSONDecoder
   
   var type: RequestType { return .get }
   var url: String { return "https://api.nytimes.com/svc/news/v3/content/section-list.json"}
-  
-  var parameters: [String : String] {
-    return [ "api-key" : apiKey ]
-  }
-  
+  var parameters: [String : String] { return [ "api-key" : apiKey ] }
   var decodable: SectionResponse.Type { return SectionResponse.self }
-  
   var decoder: JSONDecoder { return JSONDecoder() }
 }
 
