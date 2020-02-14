@@ -43,7 +43,7 @@ struct StandardArticle : Decodable, Article {
   let byline: String?
   let abstract: String?
   let url: String
-  let short_url: String
+  let item_type: String
   var multimedia: [StandardMedia]?
   
   private enum CodingKeys : String, CodingKey {
@@ -51,7 +51,7 @@ struct StandardArticle : Decodable, Article {
     case byline
     case abstract
     case url
-    case short_url
+    case item_type
     case multimedia
   }
   
@@ -66,7 +66,7 @@ struct StandardArticle : Decodable, Article {
     byline = try? container.decode(String.self, forKey: .byline)
     abstract = try? container.decode(String.self, forKey: .abstract)
     url = try container.decode(String.self, forKey: .url)
-    short_url = try container.decode(String.self, forKey: .short_url)
+    item_type = try container.decode(String.self, forKey: .item_type)
     multimedia = try? container.decode([StandardMedia].self, forKey: .multimedia)
   }
 }
