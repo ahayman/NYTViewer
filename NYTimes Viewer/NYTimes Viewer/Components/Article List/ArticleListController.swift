@@ -52,8 +52,8 @@ class ArticleListController : ArticleListDatasource {
   var articles: Published<[Article]>.Publisher { return $_articles }
   @Published private var _articles: [Article]
   
-  var latestSections: Published<[LatestSection?]>.Publisher { return $_sections }
-  @Published private var _sections: [LatestSection?]
+  var latestSections: Published<[LatestSection]>.Publisher { return $_sections }
+  @Published private var _sections: [LatestSection]
   private var sectionLoading: Cancellable?
   
   
@@ -81,7 +81,7 @@ class ArticleListController : ArticleListDatasource {
     self.api = apiClient
     self._loading = false
     self._articles = []
-    self._sections = [nil]
+    self._sections = [.all]
   }
   
   /**
@@ -106,7 +106,7 @@ class ArticleListController : ArticleListDatasource {
       .sink{ [weak self] (response: Result<SectionResponse, APIError>) in
         guard let this = self else { return }
         this.sectionLoading = nil
-        this._sections = response.value?.results ?? [nil]
+        this._sections = response.value?.results ?? [.all]
       }
   }
   

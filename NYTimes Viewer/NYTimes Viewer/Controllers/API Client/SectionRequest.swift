@@ -11,9 +11,21 @@ import Foundation
 /**
  Section Struct for API Returns
  */
-struct LatestSection : Decodable, Hashable {
-  let section: String
-  let display_name: String
+enum LatestSection : Decodable, Hashable {
+  case all
+  case section(name: String, displayName: String)
+  
+  enum CodingKeys: String, CodingKey {
+    case section, display_name
+  }
+  
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    let section = try container.decode(String.self, forKey: .section)
+    let display = try container.decode(String.self, forKey: .display_name)
+    
+    self = .section(name: section, displayName: display)
+  }
 }
 
 /**
@@ -36,20 +48,17 @@ struct SectionRequest : APIRequest {
  */
 struct SectionResponse : Decodable {
   let status: String
-  let results: [LatestSection?]
+  let results: [LatestSection]
   
   enum CodingKeys: String, CodingKey {
     case status, results
   }
   
-  /**
-   Note: `nil` is being used for "All", so we always want to return that option, thus the custom decoding.
-   */
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.status = try container.decode(String.self, forKey: .status)
-    let sections = (try? container.decode([LatestSection].self, forKey: .results)) ?? []
-    self.results = [nil] + sections
+    let sections = (try? container.decode([Failable<LatestSection>].self, forKey: .results))?.compactMap{ $0.value } ?? []
+    self.results = [.all] + sections
   }
   
 }

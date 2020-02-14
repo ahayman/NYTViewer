@@ -13,7 +13,7 @@ extension ArticleContent : SegmentItem {
   static func AllCases() -> [ArticleContent] {
     return [
       .top(section: .home),
-      .latest(section: nil),
+      .latest(section: .all),
       .mostViewed,
       .mostShared(type: .all)
     ]
@@ -21,6 +21,16 @@ extension ArticleContent : SegmentItem {
 }
 extension ArticleSection : SegmentItem { }
 extension ArticleShareType : SegmentItem { }
+extension LatestSection : SegmentItem {
+  var displayName: String {
+    switch self {
+    case .all: return "All"
+    case let .section(_, displayName): return displayName
+    }
+  }
+  
+  
+}
 
 /**
  Private struct to convert the article data received from the datasource,
@@ -78,7 +88,7 @@ protocol ArticleListDatasource {
    Sections for the "Latest" must be first downloaded.
    Subscribe to this when they're updated.
    */
-  var latestSections: Published<[LatestSection?]>.Publisher { get }
+  var latestSections: Published<[LatestSection]>.Publisher { get }
   
   /// Needed to manually reload data when user pulls-to-refresh.  Also used on first-load.
   func reloadContent()
@@ -87,18 +97,6 @@ protocol ArticleListDatasource {
 /// Routes that can triggered from this VC
 protocol ArticleListRouter : class {
   func routeTo(article: Article)
-}
-
-extension Optional: SegmentItem where Wrapped == LatestSection {
-  
-  var displayName: String {
-    switch self {
-    case .none: return "All"
-    case .some(let item): return item.display_name
-    }
-  }
-  
-  
 }
 
 /**
@@ -122,7 +120,7 @@ class ArticleListVC : UIViewController {
   
   private lazy var contentPicker = SegmentPicker(segments: ArticleContent.AllCases(), selected: datasource.content)
   private lazy var topSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .home)
-  private lazy var latestSectionPicker: SegmentPicker<LatestSection?> = SegmentPicker(segments: [nil], selected: nil)
+  private lazy var latestSectionPicker = SegmentPicker(segments: [LatestSection.all], selected: LatestSection.all)
   private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all)
   private lazy var articles = ArticleCollection<ArticleData>(data: [])
   private lazy var hr = Styles.HR.new().setShadow()
@@ -225,9 +223,9 @@ class ArticleListVC : UIViewController {
     cancellables += datasource.latestSections
       .receive(on: RunLoop.main)
       .removeDuplicates()
-      .sink{ [weak self] (sections: [LatestSection?]) in
+      .sink{ [weak self] (sections: [LatestSection]) in
         guard let this = self else { return }
-        let selected = sections.first{ $0 == this.latestSectionPicker.selectedItem } ?? nil
+        let selected = sections.first{ $0 == this.latestSectionPicker.selectedItem } ?? .all
         this.latestSectionPicker.load(segments: sections, selected: selected)
       }
   }
@@ -263,7 +261,7 @@ class ArticleListVC : UIViewController {
       .receive(on: RunLoop.main)
       .dropFirst()
       .removeDuplicates()
-      .sink { [weak self] (section: LatestSection?) in
+      .sink { [weak self] (section: LatestSection) in
         guard let this = self else { return }
         if case .latest = this.datasource.content {
           this.datasource.content = .latest(section: section)

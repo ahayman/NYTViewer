@@ -41,7 +41,7 @@ enum ArticleRequest : APIRequest {
   case mostViewed(last: ArticleInterval)
   case mostShared(type: ArticleShareType, last: ArticleInterval)
   case mostEmailed(last: ArticleInterval)
-  case latest(source: ArticleSource, section: LatestSection?)
+  case latest(source: ArticleSource, section: LatestSection)
   
   var type: RequestType { return .get }
   
@@ -52,8 +52,8 @@ enum ArticleRequest : APIRequest {
     case let .mostShared(.all, period): return "\(basePopularURL)shared/\(period.rawValue).json"
     case let .mostShared(type, period): return "\(basePopularURL)shared/\(period.rawValue)/\(type.rawValue).json"
     case let .mostEmailed(period): return "\(basePopularURL)emailed/\(period.rawValue).json"
-    case let .latest(source, .some(section)): return "\(baseNewsURL)content/\(source.rawValue)/\(section.section).json"
-    case let .latest(source, .none): return "\(baseNewsURL)content/\(source.rawValue)/all.json"
+    case let .latest(source, .section(name, _)): return "\(baseNewsURL)content/\(source.rawValue)/\(name).json"
+    case let .latest(source, .all): return "\(baseNewsURL)content/\(source.rawValue)/all.json"
     }
   }
   

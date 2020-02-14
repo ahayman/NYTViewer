@@ -163,7 +163,7 @@ class NYTClientTests: XCTestCase {
   }
   
   func testLatestAllAPI() {
-    let result = getFromClient(.latest(source: .all, section: nil))
+    let result = getFromClient(.latest(source: .all, section: .all))
     guard let articles = result.value?.results else { return XCTFail("Should have received articles") }
     
     XCTAssertEqual(articles.count, 20)
@@ -176,7 +176,7 @@ class NYTClientTests: XCTestCase {
   }
 
   func testLatestWorlAPI() {
-    let result = getFromClient(.latest(source: .all, section: LatestSection(section: "world", display_name: "World")))
+    let result = getFromClient(.latest(source: .all, section: .section(name: "world", displayName: "World")))
     guard let articles = result.value?.results else { return XCTFail("Should have received articles") }
     
     XCTAssertEqual(articles.count, 20)
@@ -193,7 +193,7 @@ class NYTClientTests: XCTestCase {
   }
   
   func testLatestTechAPI() {
-    let result = getFromClient(.latest(source: .all, section: LatestSection(section: "technology", display_name: "Technology")))
+    let result = getFromClient(.latest(source: .all, section: .section(name: "technology", displayName: "Technology")))
     guard let articles = result.value?.results else { return XCTFail("Should have received articles") }
     
     XCTAssertEqual(articles.count, 20)
@@ -218,6 +218,6 @@ class NYTClientTests: XCTestCase {
     guard let sections = result?.value?.results else { return XCTFail("Should have received a section list.") }
     
     XCTAssertEqual(sections.count, 51)
-    XCTAssertNil(sections[0])
+    XCTAssertEqual(sections[0], .all)
   }
 }
