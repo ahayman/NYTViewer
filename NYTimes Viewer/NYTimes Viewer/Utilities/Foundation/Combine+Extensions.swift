@@ -37,6 +37,17 @@ extension Publisher {
         result(value)
     })
   }
+  
+  /**
+   Returns the last value.
+   Note: This will only work if the value is cached _and_ the publisher calls a sink
+   synchronously. (Published values do this).
+   */
+  public var lastValue: Self.Output? {
+    var value: Output? = nil
+    let _ = sink { value = $0 }
+    return value
+  }
 }
 
 extension Future {

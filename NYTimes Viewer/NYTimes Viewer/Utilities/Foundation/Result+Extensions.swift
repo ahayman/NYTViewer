@@ -20,4 +20,15 @@ extension Result {
     case .success(let value): return value
     }
   }
+  
+  /**
+   An easy way to retrieve a failure if there is one.
+   - returns: Error on `.failure`, `nil` otherwise
+   */
+  var error: Failure? {
+    switch self {
+    case .failure(let error): return error
+    case .success: return nil
+    }
+  }
 }

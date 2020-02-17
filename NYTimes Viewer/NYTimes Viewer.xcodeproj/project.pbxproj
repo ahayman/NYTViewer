@@ -64,6 +64,10 @@
 		65D118AF23F203C100D0353C /* ArticleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D118AE23F203C100D0353C /* ArticleCell.swift */; };
 		65D118B123F2E2B900D0353C /* Operators.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D118B023F2E2B900D0353C /* Operators.swift */; };
 		65D118B323F2EFDE00D0353C /* Combine+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D118B223F2EFDE00D0353C /* Combine+Extensions.swift */; };
+		65F8EE9E23FADCAA00692D8B /* ArticleListController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6541B81B23F319B200711EB5 /* ArticleListController.swift */; };
+		65F8EEA023FADD0000692D8B /* ArticleListControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F8EE9F23FADD0000692D8B /* ArticleListControllerTests.swift */; };
+		65F8EEA223FAE17100692D8B /* MockAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F8EEA123FAE17100692D8B /* MockAPIClient.swift */; };
+		65F8EEA523FAE19F00692D8B /* MockNetworkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65F8EEA423FAE19F00692D8B /* MockNetworkSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -133,6 +137,9 @@
 		65D118AE23F203C100D0353C /* ArticleCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleCell.swift; sourceTree = "<group>"; };
 		65D118B023F2E2B900D0353C /* Operators.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Operators.swift; sourceTree = "<group>"; };
 		65D118B223F2EFDE00D0353C /* Combine+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Combine+Extensions.swift"; sourceTree = "<group>"; };
+		65F8EE9F23FADD0000692D8B /* ArticleListControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleListControllerTests.swift; sourceTree = "<group>"; };
+		65F8EEA123FAE17100692D8B /* MockAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAPIClient.swift; sourceTree = "<group>"; };
+		65F8EEA423FAE19F00692D8B /* MockNetworkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockNetworkSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -227,9 +234,10 @@
 		65D1186823F1F3BB00D0353C /* NYTimes ViewerTests */ = {
 			isa = PBXGroup;
 			children = (
-				65D1186B23F1F3BB00D0353C /* Info.plist */,
-				65C7679E23F716BF00AC8F38 /* APIResponses.swift */,
+				65F8EEA323FAE17F00692D8B /* Mocks */,
 				65C767A223F71CCD00AC8F38 /* NYTClientTests.swift */,
+				65F8EE9F23FADD0000692D8B /* ArticleListControllerTests.swift */,
+				65D1186B23F1F3BB00D0353C /* Info.plist */,
 			);
 			path = "NYTimes ViewerTests";
 			sourceTree = "<group>";
@@ -349,6 +357,16 @@
 				65690B1023F5AEE2002EC53E /* ArticleViewerVC.swift */,
 			);
 			path = "Article Viewer";
+			sourceTree = "<group>";
+		};
+		65F8EEA323FAE17F00692D8B /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				65F8EEA123FAE17100692D8B /* MockAPIClient.swift */,
+				65F8EEA423FAE19F00692D8B /* MockNetworkSession.swift */,
+				65C7679E23F716BF00AC8F38 /* APIResponses.swift */,
+			);
+			path = Mocks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -549,9 +567,12 @@
 			files = (
 				65C767B923F72F1900AC8F38 /* String+Extensions.swift in Sources */,
 				65C767B723F72F1900AC8F38 /* Combine+Extensions.swift in Sources */,
+				65F8EEA023FADD0000692D8B /* ArticleListControllerTests.swift in Sources */,
 				65C767A923F72E9100AC8F38 /* SectionRequest.swift in Sources */,
+				65F8EEA223FAE17100692D8B /* MockAPIClient.swift in Sources */,
 				65C767A323F71CCD00AC8F38 /* NYTClientTests.swift in Sources */,
 				65C767AA23F72EBC00AC8F38 /* APIRequest.swift in Sources */,
+				65F8EEA523FAE19F00692D8B /* MockNetworkSession.swift in Sources */,
 				65C767AD23F72ED000AC8F38 /* Article.swift in Sources */,
 				65C767B823F72F1900AC8F38 /* Date+Extensions.swift in Sources */,
 				65C767AC23F72ECC00AC8F38 /* ArticleRequest.swift in Sources */,
@@ -561,6 +582,7 @@
 				65C767B223F72EFE00AC8F38 /* ArticleListContent.swift in Sources */,
 				65C767B523F72F1900AC8F38 /* Collection+Extensions.swift in Sources */,
 				65C767BA23F72F1900AC8F38 /* Result+Extensions.swift in Sources */,
+				65F8EE9E23FADCAA00692D8B /* ArticleListController.swift in Sources */,
 				65C767AE23F72EED00AC8F38 /* ImageDatasource.swift in Sources */,
 				65C767AB23F72EC500AC8F38 /* APIClient.swift in Sources */,
 			);

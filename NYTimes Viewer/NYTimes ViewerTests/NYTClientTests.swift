@@ -10,24 +10,8 @@ import XCTest
 import Combine
 @testable import NYTimes_Viewer
 
-private class NetworkMock : NetworkSession {
-  func task(for request: URLRequest) -> AnyPublisher<(Data, HTTPURLResponse), URLError> {
-    return Future { promise in
-      guard
-        let url = request.url,
-        let data = apiResponses[url.absoluteString]?.data(using: .utf8),
-        let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)
-      else {
-        promise(.failure(URLError(URLError.Code.badURL)))
-        return
-      }
-      promise(.success((data, response)))
-    }.eraseToAnyPublisher()
-  }
-}
-
 class NYTClientTests: XCTestCase {
-  var client: NYTClient = NYTClient(session: NetworkMock())
+  var client: NYTClient = NYTClient(session: MockNetworkSession())
   
   override func setUp() {
     // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -219,5 +203,19 @@ class NYTClientTests: XCTestCase {
     
     XCTAssertEqual(sections.count, 51)
     XCTAssertEqual(sections[0], .all)
+  }
+  
+  func testError() {
+    let result = getFromClient(.topStories(section: .books))
+    guard let error = result.error else { return XCTFail(".books isn't mocked and so should return an error.") }
+    
+    switch error {
+    case .decoding: XCTFail("This should not be a decoding error.")
+    case .invalidResponse: XCTFail("The response should not be the issue.")
+    case .invalidURL: XCTFail("This is a valid request, even though it's not mocked.")
+    case .invalidCode(let code, let message):
+      XCTAssertEqual(code, 400)
+      XCTAssertEqual(message, "Unmocked URL")
+    }
   }
 }

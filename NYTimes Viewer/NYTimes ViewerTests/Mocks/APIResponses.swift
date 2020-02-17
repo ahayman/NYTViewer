@@ -7,6 +7,28 @@
 //
 
 import Foundation
+
+/**
+ A shortcut function to convert requests into articles responses without going through an APIClient
+ */
+func responseArticles(for request: ArticleRequest) -> [Article]? {
+  guard
+    let reqString = request.request?.url?.absoluteString,
+    let resData = apiResponses[reqString]?.data(using: .utf8)
+  else { return nil }
+  
+  return (try? JSONDecoder().decode(ArticleResponse.self, from: resData))?.results
+}
+
+func responseSections(for request: SectionRequest) -> [LatestSection]? {
+  guard
+    let reqString = request.request?.url?.absoluteString,
+    let resData = apiResponses[reqString]?.data(using: .utf8)
+    else { return nil }
+  
+  return (try? JSONDecoder().decode(SectionResponse.self, from: resData))?.results
+}
+
 /**
  Responses for:
   - Top -> Home

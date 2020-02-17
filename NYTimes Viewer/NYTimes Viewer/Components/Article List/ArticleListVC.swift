@@ -70,30 +70,6 @@ private struct ArticleData: ArticleCellData  {
   var content: String { return article.abstract ?? "" }
 }
 
-// The datasource needed to get/update article selection.
-protocol ArticleListDatasource {
-  /**
-   Set Article Content to update the articles.
-   Note: This may result in multiple updates to articles if a cache is available
-  */
-  var content: ArticleContent { get set }
-
-  /// Subscribe to loading to be notified when articles are loading
-  var loading: Published<Bool>.Publisher { get }
-
-  /// Subscribe to the articles to get the latest
-  var articles: Published<[Article]>.Publisher { get }
-  
-  /**
-   Sections for the "Latest" must be first downloaded.
-   Subscribe to this when they're updated.
-   */
-  var latestSections: Published<[LatestSection]>.Publisher { get }
-  
-  /// Needed to manually reload data when user pulls-to-refresh.  Also used on first-load.
-  func reloadContent()
-}
-
 /// Routes that can triggered from this VC
 protocol ArticleListRouter : class {
   func routeTo(article: Article)
