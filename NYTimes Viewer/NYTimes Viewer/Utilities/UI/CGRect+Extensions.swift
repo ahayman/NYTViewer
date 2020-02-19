@@ -310,7 +310,6 @@ public extension CGRect {
    the calculated height of all rects (plus margin) will be used to center/end all content.
    - Returns: A array of new rects that have been laid out.
    */
-  
   func layout(rects: [CGRect], direction: Direction, margin: CGFloat, align: Alignment? = nil, justify: Alignment = .start) -> [CGRect] {
     var newRects = [CGRect]()
     switch (direction) {
