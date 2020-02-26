@@ -24,12 +24,15 @@ protocol ArticleCellData {
   var content: String { get }
 }
 
+private let cellPadding: CGFloat = 5.0
+private let thumbnailHeight: CGFloat = 70.0
+
 /**
  Collection Cell used to display an article summary
  (not the whole article, because that wouldn't fit).
  */
 class ArticleCell : UICollectionViewCell {
-  
+
   /// Cell configuration data, but scoped properly
   typealias Data = ArticleCellData
 
@@ -38,18 +41,52 @@ class ArticleCell : UICollectionViewCell {
 
   // MARK: View Construction
   
-  private let header = Styles.CellTitle.new()
-  private let byline = Styles.CellSubtitle.new()
-  private let thumbnail = Styles.CellImage.new()
-  private let content = Styles.CellContent.new()
-  private let hr = Styles.HR.new()
+  private let header = Styles.CellTitle.new().usingAutoLayout()
+  private let byline = Styles.CellSubtitle.new().usingAutoLayout()
+  private let thumbnail = Styles.CellImage.new().usingAutoLayout()
+  private let content = Styles.CellContent.new().usingAutoLayout()
+  private let hr = Styles.HR.new().usingAutoLayout()
   private var data: Data?
+  
+  // MARK: Configurable Constraints
+  private lazy var imageWidth: NSLayoutConstraint = self.thumbnail.pin(.width, equals: .equal(to: thumbnailHeight))
 
   // MARK: Init & Public
   
   override init(frame: CGRect) {
     super.init(frame: frame)
-    self.contentView.addSubviews([header, byline, thumbnail, content, hr])
+    [header, byline, thumbnail, content, hr].forEach{ contentView.addSubview($0)}
+    
+    let pad: ConstraintEquality = .equal(to: cellPadding)
+    NSLayoutConstraint.activate([
+      hr.pin(.bottom, in: contentView, offset: pad),
+      hr.pin(.leading, in: contentView, offset: pad),
+      hr.pin(.trailing, in: contentView, offset: pad),
+      hr.pin(.height, equals: 1.0),
+
+      thumbnail.pin(.top, in: contentView, offset: pad),
+      thumbnail.pin(.leading, in: contentView, offset: pad),
+      imageWidth,
+      thumbnail.pin(.height, to: .width),
+      thumbnail.pin(.bottom, nextTo: hr, offset: .greaterEqual(to: cellPadding)),
+      
+
+      header.pin(.top, in: contentView, offset: pad),
+      header.pin(.leading, nextTo: thumbnail, offset: pad),
+      header.pin(.trailing, in: contentView, offset: pad),
+      header.pin(.height, equals: .greaterEqual(to: 30.0)),
+      
+      byline.pin(.top, nextTo: header, offset: pad),
+      byline.pin(.leading, nextTo: thumbnail, offset: pad),
+      byline.pin(.trailing, in: contentView, offset: pad),
+      byline.pin(.height, equals: .greaterEqual(to: 30)),
+      
+      content.pin(.top, nextTo: byline, offset: pad),
+      content.pin(.leading, nextTo: thumbnail, offset: pad),
+      content.pin(.trailing, in: contentView, offset: pad),
+      content.pin(.height, equals: .greaterEqual(to: 30)),
+      content.pin(.bottom, nextTo: hr, offset: .greaterEqual(to: cellPadding)),
+    ])
   }
   
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -77,46 +114,4 @@ class ArticleCell : UICollectionViewCell {
 
     setNeedsLayout()
   }
-  
-  // MARK: Overrides
-  
-  override func layoutSubviews() {
-    contentView.frame = bounds
-    layoutIn(frame: contentView.bounds.inset(all: 5.0))
-  }
-  
-  override func sizeThatFits(_ size: CGSize) -> CGSize {
-    layoutIn(frame: CGRect(origin: .zero, size: size))
-
-    let maxY = [header, byline, content, thumbnail, hr].map{ $0.maxY }.max() ?? 0
-    return CGSize(width: size.width, height: maxY + 10.0)
-  }
-  
-  // MARK: Private
-  
-  /**
-   We've separated the layout code so that sizing can be accomplished
-   using the actual layout code.
-   */
-  private func layoutIn(frame: CGRect) {
-    var rect = frame
-    
-    if data?.validImage == true {
-      thumbnail.frame = rect.slice(.top(70))
-    } else {
-      thumbnail.frame = .zero
-    }
-    
-    rect = rect.inset(left: 5.0)
-    
-    [header, byline, content]
-      .set(width: rect.width, height: rect.height)
-      .sizeToFit()
-    
-    header.frame = rect.slice(.top(header.height + 2.0))
-    byline.frame = rect.slice(.top(byline.height + 4.0))
-    content.frame = rect.slice(.top(content.height + 6.0))
-    hr.frame = rect.slice(.top(1.0))
-  }
-  
 }

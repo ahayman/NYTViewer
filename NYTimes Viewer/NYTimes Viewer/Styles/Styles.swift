@@ -1,11 +1,3 @@
-//
-//  Styles.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 
 protocol Fonts {
@@ -47,8 +39,8 @@ extension Style {
 struct Styles {
   
   struct Background : Style {
-    typealias Element = BaseView
-    static func new() -> Element { return apply(to: BaseView()) }
+    typealias Element = UIView
+    static func new() -> Element { return apply(to: UIView()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.backgroundColor = styleColors.background
@@ -125,11 +117,11 @@ struct Styles {
   }
   
   struct HR : Style {
-    typealias Element = BaseView
-    static func new() -> Element { return apply(to: BaseView(frame: .zero)) }
+    typealias Element = UIView
+    static func new() -> Element { return apply(to: UIView(frame: .zero)) }
     
     @discardableResult static func apply(to element: Element) -> Element {
-      element.cornerRadius = 1.0
+      element.layer.cornerRadius = 1.0
       element.backgroundColor = styleColors.cellDivider
       return element
     }
@@ -150,10 +142,10 @@ struct Styles {
     static func new() -> Element { return apply(to: LabelledButton()) }
     
     @discardableResult static func apply(to element: Element) -> Element  {
-      element.padding = UIEdgeInsets(all: 5.0)
+      element.padding = BaseLabel.Padding(all: 5.0)
       element.backgroundColor = .clear
       element.textColor = styleColors.primary
-      element.cornerRadius = 5.0
+      element.layer.cornerRadius = 5.0
       return element
     }
   }
@@ -163,10 +155,10 @@ struct Styles {
     static func new() -> Element { return apply(to: LabelledButton()) }
     
     @discardableResult static func apply(to element: Element) -> Element  {
-      element.padding = UIEdgeInsets(all: 5.0)
+      element.padding = BaseLabel.Padding(all: 5.0)
       element.backgroundColor = styleColors.selectedBackground
       element.textColor = styleColors.selectedText
-      element.cornerRadius = 5.0
+      element.layer.cornerRadius = 5.0
       return element
     }
   }

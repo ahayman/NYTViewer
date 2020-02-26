@@ -91,6 +91,7 @@ class ArticleListVC : UIViewController {
   private let imageSource: ImageDatasource
   
   private var cancellables: [AnyCancellable] = []
+  private var layouts: [NSLayoutConstraint] = []
   
   // MARK: View Construction
   
@@ -98,8 +99,14 @@ class ArticleListVC : UIViewController {
   private lazy var topSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .home)
   private lazy var latestSectionPicker = SegmentPicker(segments: [LatestSection.all], selected: LatestSection.all)
   private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all)
+  private lazy var pickerStack: UIStackView = {
+    let stack = UIStackView(arrangedSubviews: [self.contentPicker, self.topSectionPicker])
+    stack.axis = .horizontal
+    stack.distribution = .fillProportionally
+    return stack
+  }()
   private lazy var articles = ArticleCollection<ArticleData>(data: [])
-  private lazy var hr = Styles.HR.new().setShadow()
+  private lazy var hr = Styles.HR.new()
 
   // MARK: Init
   
@@ -116,10 +123,8 @@ class ArticleListVC : UIViewController {
   
   override func loadView() {
     view = Styles.Background.new()
-    view.addSubviews(contentPicker, topSectionPicker, latestSectionPicker, sharePicker, articles, hr)
     
-    topSectionPicker.layout = .horizonal(.start)
-    latestSectionPicker.layout = .horizonal(.start)
+    [pickerStack, articles, hr].forEach{ view.addSubview($0) }
 
     setupContentStreams()
     setupPickers()
@@ -132,26 +137,84 @@ class ArticleListVC : UIViewController {
       self?.datasource.reloadContent()
     }
     datasource.reloadContent()
-  }
-  
-  override func viewWillLayoutSubviews() {
-    super.viewWillLayoutSubviews()
-    
-    var rect = view.safeBounds
-    
-    contentPicker.frame = rect.slice(.top(40)).inset(left: 5.0, right: 5.0)
-    if datasource.content != .mostViewed {
-      [topSectionPicker, sharePicker, latestSectionPicker].set(frame: rect.slice(.top(40)).inset(left: 5.0, right: 5.0))
-    }
-    hr.frame = rect.slice(.top(1))
-    articles.frame = rect
+    activeContrainsts()
   }
   
   override func viewDidLayoutSubviews() {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: updatePickers)
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    updateViewConstraints()
+  }
+  
   // MARK: Private
+  
+  private func activeSubPicker() -> UIView? {
+    switch datasource.content {
+    case .mostViewed: return nil
+    case .latest: return latestSectionPicker
+    case .top: return topSectionPicker
+    case .mostShared: return sharePicker
+    }
+  }
+  
+  private func activeContrainsts() {
+    NSLayoutConstraint.deactivate(layouts)
+    
+    let guide = view.safeAreaLayoutGuide
+
+    switch traitCollection.horizontalSizeClass {
+    case .compact:
+      pickerStack.axis = .vertical
+      topSectionPicker.layout = .vertical
+      contentPicker.layout = .vertical
+      latestSectionPicker.layout = .vertical
+      sharePicker.layout = .vertical
+      
+      layouts = [
+        pickerStack.pin(.top, in: guide),
+        pickerStack.pin(.height, equals: .greaterEqual(to: 30)),
+        pickerStack.pin(.leading, in: guide),
+        pickerStack.pin(.trailing, in: guide),
+
+        hr.pin(.top, nextTo: pickerStack),
+        hr.pin(.height, equals: 1.0),
+        hr.pin(.leading, in: guide),
+        hr.pin(.trailing, in: guide),
+
+        articles.pin(.top, nextTo: hr),
+        articles.pin(.bottom, in: guide),
+        articles.pin(.leading, in: guide),
+        articles.pin(.trailing, in: guide),
+      ]
+    default:
+      pickerStack.axis = .horizontal
+      topSectionPicker.layout = .horizontal
+      contentPicker.layout = .horizontal
+      latestSectionPicker.layout = .horizontal
+      sharePicker.layout = .horizontal
+      
+      layouts = [
+        pickerStack.pin(.leading, in: guide),
+        pickerStack.pin(.top, in: guide),
+        pickerStack.pin(.width, equals: .greaterEqual(to: 30)),
+        pickerStack.pin(.right, in: guide),
+
+        hr.pin(.leading, nextTo: pickerStack),
+        hr.pin(.width, equals: 1.0),
+        hr.pin(.top, in: guide),
+        hr.pin(.bottom, in: guide),
+
+        articles.pin(.leading, nextTo: hr),
+        articles.pin(.trailing, in: guide),
+        articles.pin(.bottom, in: guide),
+        articles.pin(.top, in: guide),
+      ]
+    }
+    
+    NSLayoutConstraint.activate(layouts)
+  }
   
   /**
    Updates Picker visibility based on the current selection (content picker)
@@ -160,18 +223,30 @@ class ArticleListVC : UIViewController {
   private func updatePickers() {
     switch datasource.content {
     case .latest:
-      [topSectionPicker, sharePicker].hide()
-      latestSectionPicker.isHidden = false
+      [topSectionPicker, sharePicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(latestSectionPicker)
       latestSectionPicker.scrollToSelected()
     case .top:
-      [latestSectionPicker, sharePicker].hide()
-      topSectionPicker.isHidden = false
+      [latestSectionPicker, sharePicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(topSectionPicker)
       topSectionPicker.scrollToSelected()
     case .mostViewed:
-      [latestSectionPicker, sharePicker, topSectionPicker].hide()
+      [latestSectionPicker, sharePicker, topSectionPicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
     case .mostShared:
-      [topSectionPicker, latestSectionPicker].hide()
-      sharePicker.isHidden = false
+      [topSectionPicker, latestSectionPicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(sharePicker)
       sharePicker.scrollToSelected()
     }
   }
@@ -229,7 +304,6 @@ class ArticleListVC : UIViewController {
 
         UIView.animate(withDuration: 0.1) {
           this.updatePickers()
-          this.viewWillLayoutSubviews()
         }
       }
 

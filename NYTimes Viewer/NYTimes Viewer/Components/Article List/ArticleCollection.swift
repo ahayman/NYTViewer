@@ -16,7 +16,7 @@ private let padding: CGFloat = 5.0
  A collection of Article cells
  The layout will change depending on the size of the view
  */
-class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class ArticleCollection<T: ArticleCellData> : UIView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
   private var data: [T]
   
@@ -124,7 +124,7 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     sizingCell.configure(with: data[indexPath.row], loadImage: false)
     if bounds.width > 600 {
-      let partitions = CGFloat(bounds.width / 300).floored
+      let partitions = floor(CGFloat(bounds.width / 300))
       let width: CGFloat = bounds.width / partitions - ((partitions - 1) * padding)
       return sizingCell.sizeThatFits(CGSize(width: width, height: bounds.height))
     } else {

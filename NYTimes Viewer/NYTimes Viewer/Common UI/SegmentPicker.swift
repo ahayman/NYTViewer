@@ -24,17 +24,19 @@ protocol SegmentItem : Equatable {
  Segments can be arranged horizontally or vertically (default: horizontal-center)
  If the segments cannot be displayed in the view, the view will scroll.
  */
-class SegmentPicker<T: SegmentItem> : BaseView {
+class SegmentPicker<T: SegmentItem> : UIView {
+  
   enum Layout {
-    case vertical(Alignment)
-    case horizonal(Alignment)
+    case vertical
+    case horizontal
   }
   
   private typealias Segment = (item: T, view: LabelledButton)
-  
+
   private var segments: [Segment] = []
   @Published private var selected: T
   private let scroll: UIScrollView = UIScrollView(frame: .zero)
+  private let stack: UIStackView = UIStackView(arrangedSubviews: [])
   
   /// Register for changes in the selected segment
   var selectedSegment: Published<T>.Publisher { return $selected }
@@ -43,9 +45,11 @@ class SegmentPicker<T: SegmentItem> : BaseView {
   /**
    Set/change the layout of the segments
    */
-  var layout: Layout = .horizonal(.center) {
-    didSet { setNeedsLayout() }
+  var layout: Layout = .horizontal {
+    didSet { updateLayout() }
   }
+  var layoutConstraint: NSLayoutConstraint?
+  
   func set(layout: Layout) -> Self {
     self.layout = layout
     return self
@@ -60,6 +64,20 @@ class SegmentPicker<T: SegmentItem> : BaseView {
     super.init(frame: .zero)
     
     addSubview(scroll)
+    scroll.addSubview(stack)
+    
+    NSLayoutConstraint.activate([
+      scroll.pin(.top, in: self),
+      scroll.pin(.bottom, in: self),
+      scroll.pin(.leading, in: self),
+      scroll.pin(.trailing, in: self),
+
+      stack.pin(.top, in: scroll),
+      stack.pin(.bottom, in: scroll),
+      stack.pin(.leading, in: scroll),
+      stack.pin(.trailing, in: scroll),
+    ])
+    
     load(segments: segments, selected: selected)
   }
   
@@ -74,7 +92,10 @@ class SegmentPicker<T: SegmentItem> : BaseView {
   func load(segments: [T], selected: T) {
     self.selected = selected
     
-    self.segments.map{ $0.view }.removeFromSuperview()
+    self.segments.forEach{
+      stack.removeArrangedSubview($0.view)
+      $0.view.removeFromSuperview()
+    }
     
     self.segments = segments.map { item in
       let button = item == selected ? Styles.SegmentSelected.new() : Styles.SegmentUnselected.new()
@@ -84,10 +105,10 @@ class SegmentPicker<T: SegmentItem> : BaseView {
       }
       return (item, button)
     }
-    scroll.addSubviews(self.segments.map{ $0.view })
     
-    updateStyle()
-    setNeedsLayout()
+    self.segments.forEach{ stack.addArrangedSubview($0.view) }
+
+    updateLayout()
   }
   
   /**
@@ -112,6 +133,25 @@ class SegmentPicker<T: SegmentItem> : BaseView {
     if scroll { scrollToSelected() }
   }
   
+  private func updateLayout() {
+    
+    NSLayoutConstraint.deactivate([layoutConstraint].compactMap{$0})
+
+    switch layout {
+    case .horizontal:
+      stack.axis = .horizontal
+      stack.distribution = .fillProportionally
+      stack.spacing = 5.0
+      layoutConstraint = stack.heightAnchor.constraint(equalTo: scroll.heightAnchor)
+    case .vertical:
+      stack.axis = .vertical
+      stack.distribution = .fillProportionally
+      stack.spacing = 5.0
+      layoutConstraint = stack.widthAnchor.constraint(equalTo: scroll.widthAnchor)
+    }
+    
+    NSLayoutConstraint.activate([layoutConstraint].compactMap{$0})
+  }
 
   /// Apply appropriate selection styles
   private func updateStyle() {
@@ -121,29 +161,6 @@ class SegmentPicker<T: SegmentItem> : BaseView {
       } else {
         Styles.SegmentUnselected.apply(to: view)
       }
-    }
-    
-  }
-  
-  override func layoutSubviews() {
-    scroll.frame = bounds
-    let rect = scroll.bounds.inset(all: 3.0)
-    let views: [UIView] = self.segments.map{ $0.1 }
-    
-    // Layout Views
-    switch layout {
-    case .vertical(let justify):
-      views
-        .set(width: bounds.width, height: CGFloat.greatestFiniteMagnitude)
-        .sizeToFit()
-      rect.layoutViews(views, direction: .vertical, margin: 5.0, align: .center, justify: justify)
-      scroll.contentSize = bounds.size.set(height: views.reduce(CGFloat(0)) {max($0, $1.maxY)} )
-    case .horizonal(let justify):
-      views
-        .set(width: CGFloat.greatestFiniteMagnitude, height: bounds.height)
-        .sizeToFit()
-      rect.layoutViews(views, direction: .horizontal, margin: 5.0, align: .center, justify: justify)
-      scroll.contentSize = bounds.size.set(width: views.reduce(CGFloat(0)) {max($0, $1.maxX)} )
     }
   }
   

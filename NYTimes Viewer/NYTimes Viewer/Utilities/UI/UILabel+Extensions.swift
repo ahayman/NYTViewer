@@ -10,15 +10,6 @@ import UIKit
 
 extension UILabel {
   
-  func sizeToFit(text: String, padding: CGFloat = 0) {
-    let orig = self.text
-    self.text = text
-    sizeToFit()
-    width += padding * 2
-    height += padding * 2
-    self.text = orig
-  }
-  
   func sizeThatFits(_ size: CGSize, for text: String, padding: CGFloat = 0) -> CGSize {
     let orig = self.text
     self.text = text
