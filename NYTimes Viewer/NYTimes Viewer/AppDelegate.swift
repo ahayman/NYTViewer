@@ -1,11 +1,3 @@
-//
-//  AppDelegate.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 import CoreData
 
@@ -26,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // Use this method to select a configuration to create the new scene with.
     return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
   }
-
+  
   func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
     // Called when the user discards a scene session.
     // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.

@@ -1,11 +1,3 @@
-//
-//  ArticleCollection.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/11/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 import Combine
 
@@ -16,7 +8,7 @@ private let padding: CGFloat = 5.0
  A collection of Article cells
  The layout will change depending on the size of the view
  */
-class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class ArticleCollection<T: ArticleCellData> : UIView, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
   private var data: [T]
   
@@ -32,7 +24,7 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
   var onSelect: ((IndexPath, T) -> Void)?
   
   /// A cell kept in place purely for the purposes of sizing it for layout
-  private var sizingCell = ArticleCell(frame: .zero)
+  private var sizingCell = ArticleCell(frame: CGRect(x: 0, y: 0, width: 300, height: 200))
   
   // MARK: View Construction
 
@@ -51,12 +43,17 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
       refresh.endRefreshing()
     }
   }
-
-  private lazy var articleCollection: UICollectionView = {
+  
+  private lazy var flowLayout: UICollectionViewFlowLayout = {
     let layout = UICollectionViewFlowLayout()
     layout.scrollDirection = .vertical
-    layout.estimatedItemSize = UICollectionViewFlowLayout.automaticSize
-    let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+    return layout
+  }()
+  
+  private var cellWidth: CGFloat = 300.0
+
+  private lazy var articleCollection: UICollectionView = {
+    let cv = UICollectionView(frame: .zero, collectionViewLayout: self.flowLayout)
     cv.backgroundColor = styleColors.background
     cv.delegate = self
     cv.dataSource = self
@@ -98,11 +95,25 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
     articleCollection.reloadData()
   }
   
+  func updateStyle() {
+    articleCollection.backgroundColor = styleColors.background
+    articleCollection.visibleCells
+      .compactMap{ $0 as? ArticleCell }
+      .forEach{ $0.updateStyle() }
+  }
+
   // MARK: Overrides
   
   override func layoutSubviews() {
     super.layoutSubviews()
     articleCollection.frame = self.bounds
+    if bounds.width > 800 {
+      let partitions = floor(CGFloat(bounds.width / 400))
+      cellWidth = bounds.width / partitions - ((partitions - 1) * padding)
+    } else {
+      cellWidth = bounds.width
+    }
+    flowLayout.invalidateLayout()
   }
 
   // MARK: CollectionView and Layout Delegates
@@ -113,6 +124,7 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellReuseId, for: indexPath) as? ArticleCell ?? ArticleCell()
+    cell.update(width: cellWidth)
     cell.configure(with: data[indexPath.row])
     return cell
   }
@@ -123,12 +135,7 @@ class ArticleCollection<T: ArticleCellData> : BaseView, UICollectionViewDataSour
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     sizingCell.configure(with: data[indexPath.row], loadImage: false)
-    if bounds.width > 600 {
-      let partitions = CGFloat(bounds.width / 300).floored
-      let width: CGFloat = bounds.width / partitions - ((partitions - 1) * padding)
-      return sizingCell.sizeThatFits(CGSize(width: width, height: bounds.height))
-    } else {
-      return sizingCell.sizeThatFits(bounds.size)
-    }
+    sizingCell.update(width: cellWidth)
+    return sizingCell.preferredSize()
   }
 }

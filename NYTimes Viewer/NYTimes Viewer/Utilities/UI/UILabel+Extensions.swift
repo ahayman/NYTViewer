@@ -1,32 +1,35 @@
-//
-//  UILabel+Extensions.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 
 extension UILabel {
   
-  func sizeToFit(text: String, padding: CGFloat = 0) {
-    let orig = self.text
-    self.text = text
-    sizeToFit()
-    width += padding * 2
-    height += padding * 2
-    self.text = orig
+  func setTextAlignment(_ textAlignment: NSTextAlignment) -> Self {
+    self.textAlignment = textAlignment
+    return self
   }
   
-  func sizeThatFits(_ size: CGSize, for text: String, padding: CGFloat = 0) -> CGSize {
-    let orig = self.text
+  @discardableResult func setText(_ text: String?) -> Self {
     self.text = text
-    var newSize = sizeThatFits(size)
-    self.text = orig
-    newSize.width += padding * 2
-    newSize.height += padding * 2
-    return newSize
+    return self
+  }
+  
+  func setFont(_ font: UIFont) -> Self {
+    self.font = font
+    return self
+  }
+  
+  func setTextColor(_ textColor: UIColor) -> Self {
+    self.textColor = textColor
+    return self
+  }
+  
+  func setNumberOfLines(_ numberOfLines: Int) -> Self {
+    self.numberOfLines = numberOfLines
+    return self
+  }
+
+  func setLineBreakMode(_ lineBreakMode: NSLineBreakMode) -> Self {
+    self.lineBreakMode = lineBreakMode
+    return self
   }
 
 }

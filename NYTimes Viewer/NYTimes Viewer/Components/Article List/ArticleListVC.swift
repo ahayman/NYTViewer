@@ -1,11 +1,3 @@
-//
-//  ArticleListVC.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/11/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 import Combine
 
@@ -28,7 +20,6 @@ extension LatestSection : SegmentItem {
     case let .section(_, displayName): return displayName
     }
   }
-  
   
 }
 
@@ -91,15 +82,17 @@ class ArticleListVC : UIViewController {
   private let imageSource: ImageDatasource
   
   private var cancellables: [AnyCancellable] = []
+  private var layouts: [NSLayoutConstraint] = []
   
   // MARK: View Construction
   
-  private lazy var contentPicker = SegmentPicker(segments: ArticleContent.AllCases(), selected: datasource.content)
-  private lazy var topSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .home)
-  private lazy var latestSectionPicker = SegmentPicker(segments: [LatestSection.all], selected: LatestSection.all)
-  private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all)
-  private lazy var articles = ArticleCollection<ArticleData>(data: [])
-  private lazy var hr = Styles.HR.new().setShadow()
+  private lazy var contentPicker = SegmentPicker(segments: ArticleContent.AllCases(), selected: datasource.content).usingAutoLayout()
+  private lazy var topSectionPicker = SegmentPicker(segments: ArticleSection.allCases, selected: .home).usingAutoLayout()
+  private lazy var latestSectionPicker = SegmentPicker(segments: [LatestSection.all], selected: LatestSection.all).usingAutoLayout()
+  private lazy var sharePicker = SegmentPicker(segments: ArticleShareType.allCases, selected: .all).usingAutoLayout()
+  private lazy var pickerStack: UIStackView = UIStackView(arrangedSubviews: [self.contentPicker, self.topSectionPicker]).usingAutoLayout()
+  private lazy var articles = ArticleCollection<ArticleData>(data: []).usingAutoLayout()
+  private lazy var hr = Styles.HR.new().usingAutoLayout()
 
   // MARK: Init
   
@@ -115,11 +108,19 @@ class ArticleListVC : UIViewController {
   // MARK: Overrides
   
   override func loadView() {
+    if traitCollection.userInterfaceStyle == .dark {
+      styleColors = DarkColors()
+      styleFonts = DarkFonts()
+    } else {
+      styleColors = LightColors()
+      styleFonts = LightFonts()
+    }
     view = Styles.Background.new()
-    view.addSubviews(contentPicker, topSectionPicker, latestSectionPicker, sharePicker, articles, hr)
     
-    topSectionPicker.layout = .horizonal(.start)
-    latestSectionPicker.layout = .horizonal(.start)
+    [pickerStack, articles, hr].forEach{ view.addSubview($0) }
+    
+    pickerStack.isLayoutMarginsRelativeArrangement = true
+    pickerStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
 
     setupContentStreams()
     setupPickers()
@@ -132,26 +133,75 @@ class ArticleListVC : UIViewController {
       self?.datasource.reloadContent()
     }
     datasource.reloadContent()
-  }
-  
-  override func viewWillLayoutSubviews() {
-    super.viewWillLayoutSubviews()
-    
-    var rect = view.safeBounds
-    
-    contentPicker.frame = rect.slice(.top(40)).inset(left: 5.0, right: 5.0)
-    if datasource.content != .mostViewed {
-      [topSectionPicker, sharePicker, latestSectionPicker].set(frame: rect.slice(.top(40)).inset(left: 5.0, right: 5.0))
-    }
-    hr.frame = rect.slice(.top(1))
-    articles.frame = rect
-  }
-  
-  override func viewDidLayoutSubviews() {
+    activeContrainsts()
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: updatePickers)
   }
   
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    updateViewConstraints()
+    updateStyle()
+  }
+  
   // MARK: Private
+  
+  private func updateStyle() {
+    if traitCollection.userInterfaceStyle == .dark {
+      styleColors = DarkColors()
+      styleFonts = DarkFonts()
+    } else {
+      styleColors = LightColors()
+      styleFonts = LightFonts()
+    }
+    
+    Styles.Background.apply(to: view)
+    Styles.HR.apply(to: hr)
+    
+    articles.updateStyle()
+    sharePicker.updateStyle()
+    topSectionPicker.updateStyle()
+    contentPicker.updateStyle()
+    latestSectionPicker.updateStyle()
+  }
+  
+  private func activeSubPicker() -> UIView? {
+    switch datasource.content {
+    case .mostViewed: return nil
+    case .latest: return latestSectionPicker
+    case .top: return topSectionPicker
+    case .mostShared: return sharePicker
+    }
+  }
+  
+  private func activeContrainsts() {
+    NSLayoutConstraint.deactivate(layouts)
+    
+    let guide = view.safeAreaLayoutGuide
+
+      pickerStack.axis = .vertical
+      pickerStack.spacing = 5.0
+      topSectionPicker.layout = .horizontal
+      contentPicker.layout = .horizontal
+      latestSectionPicker.layout = .horizontal
+      sharePicker.layout = .horizontal
+      
+      layouts = [
+        pickerStack.pin(.top, in: guide),
+        pickerStack.pin(.leading, in: guide),
+        pickerStack.pin(.trailing, in: guide),
+
+        hr.pin(.top, nextTo: pickerStack),
+        hr.pin(.height, equals: 1.0),
+        hr.pin(.leading, in: guide),
+        hr.pin(.trailing, in: guide),
+
+        articles.pin(.top, nextTo: hr),
+        articles.pin(.bottom, in: guide),
+        articles.pin(.leading, in: guide),
+        articles.pin(.trailing, in: guide),
+      ]
+    
+    NSLayoutConstraint.activate(layouts)
+  }
   
   /**
    Updates Picker visibility based on the current selection (content picker)
@@ -160,18 +210,30 @@ class ArticleListVC : UIViewController {
   private func updatePickers() {
     switch datasource.content {
     case .latest:
-      [topSectionPicker, sharePicker].hide()
-      latestSectionPicker.isHidden = false
+      [topSectionPicker, sharePicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(latestSectionPicker)
       latestSectionPicker.scrollToSelected()
     case .top:
-      [latestSectionPicker, sharePicker].hide()
-      topSectionPicker.isHidden = false
+      [latestSectionPicker, sharePicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(topSectionPicker)
       topSectionPicker.scrollToSelected()
     case .mostViewed:
-      [latestSectionPicker, sharePicker, topSectionPicker].hide()
+      [latestSectionPicker, sharePicker, topSectionPicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
     case .mostShared:
-      [topSectionPicker, latestSectionPicker].hide()
-      sharePicker.isHidden = false
+      [topSectionPicker, latestSectionPicker].forEach{
+        $0.removeFromSuperview()
+        pickerStack.removeArrangedSubview($0)
+      }
+      pickerStack.addArrangedSubview(sharePicker)
       sharePicker.scrollToSelected()
     }
   }
@@ -229,7 +291,6 @@ class ArticleListVC : UIViewController {
 
         UIView.animate(withDuration: 0.1) {
           this.updatePickers()
-          this.viewWillLayoutSubviews()
         }
       }
 

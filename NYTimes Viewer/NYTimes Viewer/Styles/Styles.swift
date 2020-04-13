@@ -1,11 +1,3 @@
-//
-//  Styles.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 
 protocol Fonts {
@@ -29,8 +21,8 @@ protocol Colors {
 /**
  Eventually, replace with something dynamic
  */
-let styleColors: Colors = LightColors()
-let styleFonts: Fonts = LightFonts()
+var styleColors: Colors = LightColors()
+var styleFonts: Fonts = LightFonts()
 
 protocol Style {
   associatedtype Element
@@ -47,8 +39,8 @@ extension Style {
 struct Styles {
   
   struct Background : Style {
-    typealias Element = BaseView
-    static func new() -> Element { return apply(to: BaseView()) }
+    typealias Element = UIView
+    static func new() -> Element { return apply(to: UIView()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.backgroundColor = styleColors.background
@@ -57,8 +49,8 @@ struct Styles {
   }
   
   struct Header : Style {
-    typealias Element = BaseLabel
-    static func new() -> Element { return apply(to: BaseLabel()) }
+    typealias Element = UILabel
+    static func new() -> Element { return apply(to: UILabel()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.textColor = styleColors.header
@@ -68,8 +60,8 @@ struct Styles {
   }
   
   struct CellTitle : Style {
-    typealias Element = BaseLabel
-    static func new() -> Element { return apply(to: BaseLabel()) }
+    typealias Element = UILabel
+    static func new() -> Element { return apply(to: UILabel()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.textColor = styleColors.primary
@@ -80,8 +72,8 @@ struct Styles {
   }
   
   struct CellSubtitle : Style {
-    typealias Element = BaseLabel
-    static func new() -> Element { return apply(to: BaseLabel()) }
+    typealias Element = UILabel
+    static func new() -> Element { return apply(to: UILabel()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.textColor = styleColors.secondary
@@ -91,8 +83,8 @@ struct Styles {
   }
   
   struct CellDate : Style {
-    typealias Element = BaseLabel
-    static func new() -> Element { return apply(to: BaseLabel()) }
+    typealias Element = UILabel
+    static func new() -> Element { return apply(to: UILabel()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.textColor = styleColors.secondary
@@ -102,13 +94,14 @@ struct Styles {
   }
   
   struct CellContent : Style {
-    typealias Element = BaseLabel
-    static func new() -> Element { return apply(to: BaseLabel()) }
+    typealias Element = UILabel
+    static func new() -> Element { return apply(to: UILabel()) }
     
     @discardableResult static func apply(to element: Element) -> Element {
       element.textColor = styleColors.primary
       element.font = styleFonts.cellSection
-      element.numberOfLines = 3
+      element.numberOfLines = 0
+      element.lineBreakMode = .byWordWrapping
       return element
     }
   }
@@ -125,11 +118,11 @@ struct Styles {
   }
   
   struct HR : Style {
-    typealias Element = BaseView
-    static func new() -> Element { return apply(to: BaseView(frame: .zero)) }
+    typealias Element = UIView
+    static func new() -> Element { return apply(to: UIView(frame: .zero)) }
     
     @discardableResult static func apply(to element: Element) -> Element {
-      element.cornerRadius = 1.0
+      element.layer.cornerRadius = 1.0
       element.backgroundColor = styleColors.cellDivider
       return element
     }
@@ -150,10 +143,11 @@ struct Styles {
     static func new() -> Element { return apply(to: LabelledButton()) }
     
     @discardableResult static func apply(to element: Element) -> Element  {
-      element.padding = UIEdgeInsets(all: 5.0)
       element.backgroundColor = .clear
       element.textColor = styleColors.primary
-      element.cornerRadius = 5.0
+      element.setPadding(horizontal: 8, vertical: 3)
+      element.layer.cornerRadius = 5.0
+      element.clipsToBounds = true
       return element
     }
   }
@@ -163,10 +157,11 @@ struct Styles {
     static func new() -> Element { return apply(to: LabelledButton()) }
     
     @discardableResult static func apply(to element: Element) -> Element  {
-      element.padding = UIEdgeInsets(all: 5.0)
       element.backgroundColor = styleColors.selectedBackground
       element.textColor = styleColors.selectedText
-      element.cornerRadius = 5.0
+      element.setPadding(horizontal: 8, vertical: 3)
+      element.layer.cornerRadius = 5.0
+      element.clipsToBounds = true
       return element
     }
   }

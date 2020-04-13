@@ -1,11 +1,3 @@
-//
-//  ImageDatasource.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/13/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 import Combine
 

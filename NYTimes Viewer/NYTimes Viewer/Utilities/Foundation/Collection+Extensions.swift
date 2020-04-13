@@ -1,11 +1,3 @@
-//
-//  Collection+Extensions.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import Foundation
 
 enum SortDirection {

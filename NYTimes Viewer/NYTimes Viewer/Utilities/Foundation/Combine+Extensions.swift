@@ -1,11 +1,3 @@
-//
-//  Combine+Extensions.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/11/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import Combine
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)

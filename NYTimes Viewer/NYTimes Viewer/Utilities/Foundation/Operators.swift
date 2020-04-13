@@ -1,11 +1,3 @@
-//
-//  Operators.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/11/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import Foundation
 
 /**

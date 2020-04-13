@@ -1,11 +1,3 @@
-//
-//  LightStyle.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/10/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import UIKit
 
 struct LightFonts : Fonts {
@@ -18,8 +10,8 @@ struct LightFonts : Fonts {
 
 struct LightColors : Colors {
   var primary: UIColor = .darkText
-  var secondary: UIColor = UIColor(hex: "#242424")!
-  var header: UIColor = UIColor(hex: "#242424")!
+  var secondary: UIColor = UIColor(white: 0.14, alpha: 1)
+  var header: UIColor = UIColor(white: 0.14, alpha: 1)
   var background: UIColor = .white
   var cellDivider: UIColor = .darkGray
   var selectedBackground: UIColor = .darkGray

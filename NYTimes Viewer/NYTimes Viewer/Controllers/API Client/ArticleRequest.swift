@@ -1,11 +1,3 @@
-//
-//  ArticleRequest.swift
-//  NYTimes Viewer
-//
-//  Created by Aaron Hayman on 2/14/20.
-//  Copyright © 2020 Flexilesoft, LLC. All rights reserved.
-//
-
 import Foundation
 
 private let basePopularURL = "https://api.nytimes.com/svc/mostpopular/v2/"
